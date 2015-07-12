@@ -1,0 +1,1 @@
+#algorithm wrapper to have the same interface for all the libraries
