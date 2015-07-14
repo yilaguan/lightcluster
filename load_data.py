@@ -1,1 +1,1 @@
-# wrapper for easy download of data
+# wrapper for easy downloading data
