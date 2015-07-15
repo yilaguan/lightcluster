@@ -73,7 +73,7 @@ def compute_avg_f1(labels_true, labels_pred):
         res2 = res2 + f1;
     return 1/2.0*(res1/len(set(labels_true)) + res2/len(set(labels_pred)))
 
-def compute_modularity(labels_pred, egde_list):
+def compute_modularity(labels_pred, edge_list):
     n_edges = len(edge_list);
     m = 0.0
     E = 0.0
