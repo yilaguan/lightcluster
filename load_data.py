@@ -1,15 +1,18 @@
 # wrapper for easy downloading data
 
+
+#TODO: weighted graph processing
+
 def download_data(filename):
   f = open(filename,"r")
   s = f.readline()
-  n_vertex, n_edge = s.split(' ',2);
+  n_vertex, n_edge = s.split(' ');
   n_vertex = int(n_vertex)
   n_edge = int(n_edge)
   edgelist = [];
   for i in range(n_edge):
     s = f.readline()
-    vertex1, vertex2 = s.split(' ',2);
+    vertex1, vertex2 = s.split(' ');
     vertex1 = int(vertex1)-1
     vertex2 = int(vertex2)-1
     edgelist.append([vertex1, vertex2, 1])       
