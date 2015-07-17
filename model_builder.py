@@ -35,7 +35,7 @@ def compute_scan(n_vertex, edge_list, mu, eps):
   from scipy.sparse import csr_matrix
   G = csr_matrix((weights,(rows,columns)),shape=(n_vertex,n_vertex))
 
-  from scan_by_enjoylife import scan_by_enjoylife_algo
+  from libs.scan_by_enjoylife import scan_by_enjoylife_algo
   labels = scan_by_enjoylife_algo(G, mu, eps)
 
   return labels
