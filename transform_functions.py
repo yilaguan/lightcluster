@@ -47,9 +47,19 @@ def compute_networkx_form(n_vertex, edge_list):
 def compute_igraph_form(n_vertex, edge_list):
 
   import igraph as ig
-  g = ig.Graph()
-  g.add_vertices(n_vertex)
+  graph = ig.Graph()
+  graph.add_vertices(n_vertex)
 
+  edge_list_copy = edge_list
+
+  import numpy as np
+  edge_list_copy = np.asarray(edge_list_copy)
+  edge_list_without_weights = edge_list_copy[:, :2]
+  weights = edge_list_copy[:, 2]
+  
+  graph.add_edges(edge_list_without_weights)
+
+  return [graph, weights]
 
 
 #transforming original list of labels into list of labels with 0,1,2,...
@@ -72,6 +82,19 @@ def compute_normal_labels(labels):
       iid = iid + 1
   
   return normal_labels
+
+
+def compute_labels_from_sets(n_vertex, list_of_set):
+  
+  labels = [-1]*n_vertex
+
+  for i in xrange(len(list_of_set)):
+    for j in list_of_set[i]:
+      labels[j] = i
+
+  return labels
+
+
 
 #extracts biggest fully connected component of graph written in filename. creates new file with this component.
 #if data with ground-truth, creates new file with answer for this component

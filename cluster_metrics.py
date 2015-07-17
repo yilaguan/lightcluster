@@ -104,7 +104,7 @@ def compute_avg_f1(labels_true, labels_pred):
   return avg_f1
 
 
-def compute_modularity(labels_pred, edge_list):
+def compute_my_modularity(labels_pred, edge_list):
 
   n_edges = len(edge_list)
   m = 0.0   #finally m = sum w_ij
@@ -127,4 +127,15 @@ def compute_modularity(labels_pred, edge_list):
   Q = E/(2.0*m) - res/(4.0*m*m)        #modularity
   
   return Q
+
+
+def compute_igraph_modularity(labels_pred, edge_list):
+
+	n_vertex = len(labels_pred)
+	import igraph as ig
+	from transform_functions import compute_igraph_form
+	graph, weights = compute_igraph_form(n_vertex, edge_list);
+
+	return graph.modularity(labels_pred, weights=weights)
+
 
