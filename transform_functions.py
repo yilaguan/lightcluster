@@ -68,18 +68,18 @@ def compute_normal_labels(labels):
   normal_labels = []
 
   #dictionary for old and new labels
-  biection = {}
+  new_label_indices = {}
 
-  iid = 0;
+  index = 0;
   
   for i in xrange(len(labels)):
   
-    if labels[i] in biection.keys():
-      normal_labels.append(biection[labels[i]])
+    if labels[i] in new_label_indices.keys():
+      normal_labels.append(new_label_indices[labels[i]])
     else:
-      biection[labels[i]] = iid
-      normal_labels.append(biection[labels[i]])
-      iid = iid + 1
+      new_label_indices[labels[i]] = index
+      normal_labels.append(new_label_indices[labels[i]])
+      index = index + 1
   
   return normal_labels
 
@@ -115,9 +115,9 @@ def extract_biggest_component(filename):
     newgraph = components[0]
     n_vertex_new = len(newgraph.nodes())
 
-    biection = {}
+    new_vertex_indices = {}
     for i in xrange(n_vertex_new):
-      biection[newgraph.nodes()[i]] = i+1
+      new_vertex_indices[newgraph.nodes()[i]] = i+1
 
     f = open(filename[:-4]+'_new.txt', "w")
     f.write(str(n_vertex_new)+' '+str(len(newgraph.edges()))+'\n')
@@ -125,9 +125,9 @@ def extract_biggest_component(filename):
     for i in xrange(len(edge_list)):
       if edge_list[i][0] in newgraph.nodes():
         if len(edge_list[0]) == 2:
-          f.write(str(biection[edge_list[i][0]])+' '+str(biection[edge_list[i][1]])+'\n')
+          f.write(str(new_vertex_indices[edge_list[i][0]])+' '+str(new_vertex_indices[edge_list[i][1]])+'\n')
         else:
-          f.write(str(biection[edge_list[i][0]])+' '+str(biection[edge_list[i][1]])+' '+str(edge_list[i][2])+'\n')
+          f.write(str(new_vertex_indices[edge_list[i][0]])+' '+str(new_vertex_indices[edge_list[i][1]])+' '+str(edge_list[i][2])+'\n')
 
     f.close()
 
