@@ -51,6 +51,7 @@ def clustering(algorithm, n_vertex=None, edge_list=None, **kwargs): #  n_cluster
       mu = 0.7
     if eps == None:
       print "Argument eps was not given for SCAN algorithm. Launching with default eps=2.0.\n"
+      eps = 2.0
     if n_steps != None:
       print "Argument n_steps is ignored for SCAN algorithm.\n"
     return compute_scan(n_vertex, edge_list, mu, eps)
@@ -106,7 +107,10 @@ def compute_spectral_clustering(n_vertex, edge_list, n_clusters):
   adjacency_matrix = compute_adjacency_matrix(n_vertex, edge_list)
   labels = cls.fit_predict(adjacency_matrix, n_clusters)
 
-  return labels
+  from transform_functions import compute_clusters_from_labels
+  clusters = compute_clusters_from_labels(labels)
+
+  return [labels, clusters]
 
 
 def compute_scan(n_vertex, edge_list, mu, eps):
@@ -120,7 +124,10 @@ def compute_scan(n_vertex, edge_list, mu, eps):
   from lib.scan_by_enjoylife import scan_by_enjoylife_algo
   labels = scan_by_enjoylife_algo(G, mu, eps)
 
-  return labels
+  from transform_functions import compute_clusters_from_labels
+  clusters = compute_clusters_from_labels(labels)
+
+  return [labels, clusters]
 
 
 def compute_greedy_newman(n_vertex, edge_list):
@@ -138,7 +145,10 @@ def compute_greedy_newman(n_vertex, edge_list):
     for j in tmp_list[index]:
       labels[j] = index
 
-  return labels
+  from transform_functions import compute_clusters_from_labels
+  clusters = compute_clusters_from_labels(labels)
+
+  return [labels, clusters]
 
 def compute_walktrap(n_vertex, edge_list, n_clusters, n_steps):
 
@@ -149,10 +159,10 @@ def compute_walktrap(n_vertex, edge_list, n_clusters, n_steps):
   dendrogram = graph.community_walktrap(weights, n_steps)
   clusters = dendrogram.as_clustering(n=n_clusters)
 
-  from transform_functions import compute_labels_from_sets
-  labels = compute_labels_from_sets(n_vertex, clusters)
+  from transform_functions import compute_labels_from_clusters
+  labels = compute_labels_from_clusters(n_vertex, clusters)
 
-  return labels
+  return [labels, clusters]
 
 
 def compute_lpa(n_vertex, edge_list):
@@ -163,8 +173,8 @@ def compute_lpa(n_vertex, edge_list):
 
   clusters = graph.community_label_propagation(weights=weights, initial=None, fixed=None)
 
-  from transform_functions import compute_labels_from_sets
-  labels = compute_labels_from_sets(n_vertex, clusters)
+  from transform_functions import compute_labels_from_clusters
+  labels = compute_labels_from_clusters(n_vertex, clusters)
 
-  return labels
+  return [labels, clusters]
 

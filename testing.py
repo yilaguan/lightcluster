@@ -1,7 +1,4 @@
-from load_data import download_graph as dd
-n, edges = dd('data\karate.txt')
+from load_data import download_clusters
+cl = download_clusters('data\\amazon_clusters.txt')
 
-from transform_functions import compute_igraph_form
-g, weights = compute_igraph_form(n, edges)
-
-print g.edges()
+print len(cl)

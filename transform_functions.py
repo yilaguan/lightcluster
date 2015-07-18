@@ -83,17 +83,32 @@ def compute_normal_labels(labels):
   
   return normal_labels
 
-
-def compute_labels_from_sets(n_vertex, list_of_set):
+#it is not possible in some cases (overlapping structure)
+def compute_labels_from_clusters(n_vertex, clusters):
   
   labels = [-1]*n_vertex
 
-  for i in xrange(len(list_of_set)):
-    for j in list_of_set[i]:
+  for i in xrange(len(clusters)):
+    for j in clusters[i]:
       labels[j] = i
 
   return labels
 
+
+def compute_clusters_from_labels(labels):
+
+  clusters = []
+
+  for i in set(labels):
+    cluster = set(j for j in xrange(len(labels)) if labels[j] == i)
+    clusters.append(cluster)
+
+  return clusters
+
+
+def compute_amount_of_communities(labels):
+
+  return len(set(labels))
 
 
 #extracts biggest fully connected component of graph written in filename. creates new file with this component.
@@ -132,9 +147,9 @@ def extract_biggest_component(filename):
     f.close()
 
     import os
-    if os.path.isfile(filename[:-4]+'_ans.txt'):
-      f = open(filename[:-4]+'_ans.txt', "r")
-      f1 = open(filename[:-4]+'_ans_new.txt', "w")
+    if os.path.isfile(filename[:-4]+'_labels.txt'):
+      f = open(filename[:-4]+'_labels.txt', "r")
+      f1 = open(filename[:-4]+'_labels_new.txt', "w")
 
       for i in xrange(n_vertex):
         s = f.readline()
