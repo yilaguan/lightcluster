@@ -106,9 +106,13 @@ def compute_clusters_from_labels(labels):
   return clusters
 
 
-def compute_amount_of_communities(labels):
+def compute_amount_of_communities_from_labels(labels):
 
   return len(set(labels))
+
+def compute_amount_of_communities_from_clusters(clusters):
+
+  return len(clusters)
 
 
 #extracts biggest fully connected component of graph written in filename. creates new file with this component.
@@ -149,7 +153,7 @@ def extract_biggest_component(filename):
     import os
     if os.path.isfile(filename[:-4]+'_labels.txt'):
       f = open(filename[:-4]+'_labels.txt', "r")
-      f1 = open(filename[:-4]+'_labels_new.txt', "w")
+      f1 = open(filename[:-4]+'new_labels.txt', "w")
 
       for i in xrange(n_vertex):
         s = f.readline()
@@ -158,4 +162,7 @@ def extract_biggest_component(filename):
 
       f.close()
       f1.close()
+
+    #TODO: cluster representation
+    #if os.path.isfile(filename[:-4]+'_clusters.txt'):
 

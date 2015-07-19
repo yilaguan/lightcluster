@@ -3,17 +3,17 @@
 #TODO: remake using *parameters
 
 
-def clustering(algorithm, n_vertex=None, edge_list=None, **kwargs): #  n_clusters=None, mu=0.3, eps=1.0, steps=4):
+def clustering(algorithm, n_vertex=None, edge_list=None, **kwargs): 
 
 
   if n_vertex == None or edge_list == None:
     raise TypeError("Arguments n_vertex and edge_list must be given!\n")
 
-  recognized = ['n_clusters', 'mu', 'eps', 'n_steps']
+  recognized = ['n_clusters', 'neighbours_threshold', 'similarity_threshold', 'n_steps']
 
   n_clusters=None
-  mu=None
-  eps=None
+  neighbours_threshold=None
+  similarity_threshold=None
   n_steps=None
 
   for key, value in kwargs.items():
@@ -24,9 +24,9 @@ def clustering(algorithm, n_vertex=None, edge_list=None, **kwargs): #  n_cluster
     if key == recognized[0]:
       n_clusters = value
     elif key == recognized[1]:
-      mu = value
+      neighbours_threshold = value
     elif key == recognized[2]:
-      eps = value
+      similarity_threshold = value
     elif key == recognized[3]:
       n_steps = value
 
@@ -34,10 +34,10 @@ def clustering(algorithm, n_vertex=None, edge_list=None, **kwargs): #  n_cluster
   if algorithm == 'Spectral':
     if n_clusters == None:
       raise TypeError("Argument n_clusters must be given for Srectral algorithm!\n")
-    if mu != None:
-      print "Argument mu is ignored for Spectral algorithm.\n"
-    if eps != None:
-      print "Argument eps is ignored for Spectral algorithm.\n"
+    if neighbours_threshold != None:
+      print "Argument neighbours_threshold is ignored for Spectral algorithm.\n"
+    if similarity_threshold != None:
+      print "Argument similarity_threshold is ignored for Spectral algorithm.\n"
     if n_steps != None:
       print "Argument n_steps is ignored for Spectral algorithm.\n"
 
@@ -46,35 +46,35 @@ def clustering(algorithm, n_vertex=None, edge_list=None, **kwargs): #  n_cluster
   elif algorithm == 'SCAN':
     if n_clusters != None:
       print "Argument n_clusters is ignored for SCAN algorithm.\n"
-    if mu == None:
-      print "Argument mu was not given for SCAN algorithm. Launching with default mu=0.7.\n"
-      mu = 0.7
-    if eps == None:
-      print "Argument eps was not given for SCAN algorithm. Launching with default eps=2.0.\n"
-      eps = 2.0
+    if neighbours_threshold == None:
+      print "Argument neighbours_threshold was not given for SCAN algorithm. Launching with default neighbours_threshold=0.7.\n"
+      neighbours_threshold = 0.7
+    if similarity_threshold == None:
+      print "Argument similarity_threshold was not given for SCAN algorithm. Launching with default similarity_threshold=2.0.\n"
+      similarity_threshold = 2.0
     if n_steps != None:
       print "Argument n_steps is ignored for SCAN algorithm.\n"
-    return compute_scan(n_vertex, edge_list, mu, eps)
+    return compute_scan(n_vertex, edge_list, neighbours_threshold, similarity_threshold)
 
   elif algorithm == 'GreedyNewman':
     if n_clusters != None:
       print "Argument n_clusters is ignored for GreedyNewman algorithm.\n"
-    if mu != None:
-      print "Argument mu is ignored for GreedyNewman algorithm.\n"
-    if eps != None:
-      print "Argument eps is ignored for GreedyNewman algorithm.\n"
+    if neighbours_threshold != None:
+      print "Argument neighbours_threshold is ignored for GreedyNewman algorithm.\n"
+    if similarity_threshold != None:
+      print "Argument similarity_threshold is ignored for GreedyNewman algorithm.\n"
     if n_steps != None:
       print "Argument n_steps is ignored for GreedyNewman algorithm.\n"
 
     return compute_greedy_newman(n_vertex, edge_list)
 
   elif algorithm == 'Walktrap':
-    if n_clusters != None:
-      print "Argument n_clusters is ignored for Walktrap algorithm.\n"
-    if mu != None:
-      print "Argument mu is ignored for Walktrap algorithm.\n"
-    if eps != None:
-      print "Argument eps is ignored for Walktrap algorithm.\n"
+    if n_clusters == None:
+      print "Argument n_clusters will be choosen automatically for Walktrap algorithm.\n"
+    if neighbours_threshold != None:
+      print "Argument neighbours_threshold is ignored for Walktrap algorithm.\n"
+    if similarity_threshold != None:
+      print "Argument similarity_threshold is ignored for Walktrap algorithm.\n"
     if n_steps == None:
       print "Argument n_steps was not given for Walktrap algorithm. Launching with default n_steps=4.\n"
       n_steps = 4
@@ -84,10 +84,10 @@ def clustering(algorithm, n_vertex=None, edge_list=None, **kwargs): #  n_cluster
   elif algorithm == 'LPA':
     if n_clusters == None:
       print "Argument n_clusters is ignored for LPA algorithm!\n"
-    if mu != None:
-      print "Argument mu is ignored for LPA algorithm.\n"
-    if eps != None:
-      print "Argument eps is ignored for LPA algorithm.\n"
+    if neighbours_threshold != None:
+      print "Argument neighbours_threshold is ignored for LPA algorithm.\n"
+    if similarity_threshold != None:
+      print "Argument similarity_threshold is ignored for LPA algorithm.\n"
     if n_steps != None:
       print "Argument n_steps is ignored for LPA algorithm.\n"
 
@@ -113,7 +113,7 @@ def compute_spectral_clustering(n_vertex, edge_list, n_clusters):
   return [labels, clusters]
 
 
-def compute_scan(n_vertex, edge_list, mu, eps):
+def compute_scan(n_vertex, edge_list, neighbours_threshold, similarity_threshold):
 
   from transform_functions import compute_csr_form
   rows, columns, weights = compute_csr_form(edge_list)
@@ -122,7 +122,7 @@ def compute_scan(n_vertex, edge_list, mu, eps):
   G = csr_matrix((weights,(rows,columns)),shape=(n_vertex,n_vertex))
 
   from lib.scan_by_enjoylife import scan_by_enjoylife_algo
-  labels = scan_by_enjoylife_algo(G, mu, eps)
+  labels = scan_by_enjoylife_algo(G, neighbours_threshold, similarity_threshold)
 
   from transform_functions import compute_clusters_from_labels
   clusters = compute_clusters_from_labels(labels)
@@ -138,15 +138,10 @@ def compute_greedy_newman(n_vertex, edge_list):
 
   from agglomcluster import NewmanGreedy
   cls = NewmanGreedy(graph)
-  tmp_list = cls.get_clusters()
+  clusters = cls.get_clusters()
 
-  labels = [0]*n_vertex
-  for index in xrange(len(tmp_list)):
-    for j in tmp_list[index]:
-      labels[j] = index
-
-  from transform_functions import compute_clusters_from_labels
-  clusters = compute_clusters_from_labels(labels)
+  from transform_functions import compute_labels_from_clusters
+  labels = compute_labels_from_clusters(n_vertex, clusters)
 
   return [labels, clusters]
 
