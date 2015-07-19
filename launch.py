@@ -1,10 +1,10 @@
 #example
 
 from load_data import download_graph
-n_vertex, edge_list = download_graph('data\\football.txt')
+n_vertex, edge_list = download_graph('data\\protein_new.txt')
 
 from load_data import download_labels
-lbls_true = download_labels('data\\football_labels.txt')
+lbls_true = download_labels('data\\protein_new_labels.txt')
 
 from transform_functions import compute_clusters_from_labels
 clrs_true = compute_clusters_from_labels(lbls_true)

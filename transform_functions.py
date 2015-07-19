@@ -50,15 +50,20 @@ def compute_igraph_form(n_vertex, edge_list):
   graph = ig.Graph()
   graph.add_vertices(n_vertex)
 
-  edge_list_copy = edge_list
+  #edge_list_copy = edge_list
 
-  import numpy as np
-  edge_list_copy = np.asarray(edge_list_copy)
-  edge_list_without_weights = edge_list_copy[:, :2]
-  weights = edge_list_copy[:, 2]
+  #import numpy as np
+  #edge_list_copy = np.asarray(edge_list_copy)
+  #edge_list_without_weights = edge_list_copy[:, :2]
+  #weights = edge_list_copy[:, 2]
   
-  graph.add_edges(edge_list_without_weights)
+  edge_list_without_weights = []
+  weights = []
+  for i in xrange(len(edge_list)):
+    edge_list_without_weights.append([edge_list[i][0], edge_list[i][1]])
+    weights.append(edge_list[i][2])
 
+  graph.add_edges(edge_list_without_weights)
   return [graph, weights]
 
 

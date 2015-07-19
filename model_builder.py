@@ -3,7 +3,21 @@
 #TODO: remake using *parameters
 
 
-def clustering(algorithm, n_vertex=None, edge_list=None, **kwargs): 
+def clustering(algorithm, n_vertex, edge_list, n_clusters, neighbours_threshold, similarity_threshold, n_steps):
+
+  if algorithm == 'Spectral':
+    return compute_spectral_clustering(n_vertex, edge_list, n_clusters)
+  elif algorithm == 'SCAN':
+    return compute_scan(n_vertex, edge_list, neighbours_threshold, similarity_threshold)
+  elif algorithm == 'GreedyNewman':
+    return compute_greedy_newman(n_vertex, edge_list)
+  elif algorithm == 'Walktrap':
+    return compute_walktrap(n_vertex, edge_list, n_clusters, n_steps)
+  elif algorithm == 'LPA':
+    return compute_lpa(n_vertex, edge_list)
+
+
+def independent_clustering(algorithm, n_vertex=None, edge_list=None, **kwargs): 
 
 
   if n_vertex == None or edge_list == None:
@@ -82,7 +96,7 @@ def clustering(algorithm, n_vertex=None, edge_list=None, **kwargs):
     return compute_walktrap(n_vertex, edge_list, n_clusters, n_steps)
 
   elif algorithm == 'LPA':
-    if n_clusters == None:
+    if n_clusters != None:
       print "Argument n_clusters is ignored for LPA algorithm!\n"
     if neighbours_threshold != None:
       print "Argument neighbours_threshold is ignored for LPA algorithm.\n"
@@ -95,7 +109,6 @@ def clustering(algorithm, n_vertex=None, edge_list=None, **kwargs):
 
   else:
     raise TypeError(("Algorithm '%s' is not recognized!\nAvailable algorithms are: Spectral, SCAN, GreedyNewman, Walktrap, LPA\n") % algorithm)
-
 
 
 def compute_spectral_clustering(n_vertex, edge_list, n_clusters):
@@ -149,7 +162,7 @@ def compute_walktrap(n_vertex, edge_list, n_clusters, n_steps):
 
   import igraph as ig
   from transform_functions import compute_igraph_form
-  graph, weights = compute_igraph_form(n_vertex, edge_list);
+  graph, weights = compute_igraph_form(n_vertex, edge_list)
 
   dendrogram = graph.community_walktrap(weights, n_steps)
   clusters = dendrogram.as_clustering(n=n_clusters)

@@ -23,11 +23,11 @@ def match_straight(clusters_true, clusters_pred):
 
 	for i in xrange(len(clusters_true)):
 
-		A = clusters_true[i]
+		A = set(clusters_true[i])
 		f1_max = -1000
 
 		for j in xrange(len(clusters_pred)):
-			B = clusters_pred[j]
+			B = set(clusters_pred[j])
 
 			if (len(A & B) != 0):
 				precision = 1.0 * len(A & B) / len(B)
@@ -46,11 +46,11 @@ def match_reverse(clusters_true, clusters_pred):
 	g_ = {}
 
 	for j in xrange(len(clusters_pred)):
-		B = clusters_pred[j]
+		B = set(clusters_pred[j])
 		f1_max = -1000
 
 		for i in xrange(len(clusters_true)):
-			A = clusters_true[i]
+			A = set(clusters_true[i])
 
 			if (len(A & B) != 0):
 				precision = 1.0 * len(A & B) / len(B)
@@ -68,10 +68,9 @@ def compute_recall(clusters_true, clusters_pred):
 
 	res = 0.0
 	g = match_straight(clusters_true, clusters_pred)
-
 	for i in xrange(len(clusters_true)):
-		A = clusters_true[i]
-		B = clusters_pred[g(i)]
+		A = set(clusters_true[i])
+		B = set(clusters_pred[g[i]])
 		res = res + 1.0 * len(A & B) / len(A)
 	
 	recall = res / len(clusters_true)
@@ -86,16 +85,16 @@ def compute_avg_f1(clusters_true, clusters_pred):
 	g_ = match_reverse(clusters_true, clusters_pred)
 
 	for i in xrange(len(clusters_true)):
-		A = clusters_true[i]
-		B = clusters_pred[g[i]]
+		A = set(clusters_true[i])
+		B = set(clusters_pred[g[i]])
 		precision = 1.0 * len(A & B) / len(B)
 		recall = 1.0 * len(A & B) / len(A)
 		f1 = 2.0 * precision * recall / (precision + recall)
 		res1 = res1 + f1
 
 	for j in xrange(len(clusters_pred)):
-		B = clusters_pred[j]
-		A = clusters_true[g_[j]]
+		B = set(clusters_pred[j])
+		A = set(clusters_true[g_[j]])
 		precision = 1.0 * len(A & B) / len(B)
 		recall = 1.0 * len(A & B) / len(A)
 		f1 = 2.0 * precision * recall / (precision + recall)
