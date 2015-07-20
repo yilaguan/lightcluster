@@ -62,7 +62,7 @@
 ---------------------------------------------------------------------------------------------------
     *model_builder.py
 
-      - clustering
+      - independent_clustering
         Necessary parameters: 
           algorithm: 'Spectral', 'SCAN', 'GreedyNewman', 'Walktrap', 'LPA'
           'n_vertex'

@@ -34,7 +34,7 @@ def make_experiment(algorithms=None, datasets=None, **kwargs):
 			print 'Algorithm '+algorithm+' is unavailable!\n'
 
 	for dataset in datasets:
-			if dataset not in ['football.txt', 'polbooks.txt', 'protein_new.txt', 'amazon.txt', 'scientists.txt', 'karate.txt']:
+			if dataset not in ['football.txt', 'polbooks.txt', 'protein_new.txt', 'amazon.txt', 'scientists_new.txt', 'karate.txt']:
 				print 'Dataset '+dataset+' is unavailable!\n'
 
 	result = {}
@@ -49,7 +49,7 @@ def make_experiment(algorithms=None, datasets=None, **kwargs):
 			continue
 
 		for dataset in datasets:
-			if dataset not in ['football.txt', 'polbooks.txt', 'protein_new.txt', 'amazon.txt', 'scientists.txt', 'karate.txt']:
+			if dataset not in ['football.txt', 'polbooks.txt', 'protein_new.txt', 'amazon.txt', 'scientists_new.txt', 'karate.txt']:
 				continue
 
 			from load_data import download_graph
@@ -61,8 +61,8 @@ def make_experiment(algorithms=None, datasets=None, **kwargs):
 			lbls = compute_normal_labels(lbls)
 
 			from cluster_metrics import compute_my_modularity, compute_igraph_modularity
-			result[algorithm, dataset, 'my modularity'] = compute_my_modularity(lbls, edge_list)
-			result[algorithm, dataset, 'igraph modularity'] = compute_igraph_modularity(lbls, edge_list)
+			result[algorithm, dataset, 'My modularity'] = compute_my_modularity(lbls, edge_list)
+			result[algorithm, dataset, 'Igraph modularity'] = compute_igraph_modularity(lbls, edge_list)
 
 			lbls_true = None
 			clrs_true = None
@@ -78,20 +78,20 @@ def make_experiment(algorithms=None, datasets=None, **kwargs):
 				clrs_true = download_clusters('data\\'+dataset[:-4]+'_clusters.txt')
 
 			if clrs_true == None:
-				result[algorithm, dataset, 'recall'] = None
-				result[algorithm, dataset, 'average f1-score'] = None
+				result[algorithm, dataset, 'Recall'] = None
+				result[algorithm, dataset, 'Average F1'] = None
 			else:
 				from cluster_metrics import compute_recall, compute_avg_f1
-				result[algorithm, dataset, 'recall'] = compute_recall(clrs_true, clrs)
-				result[algorithm, dataset, 'average f1-score'] = compute_avg_f1(clrs_true, clrs)
+				result[algorithm, dataset, 'Recall'] = compute_recall(clrs_true, clrs)
+				result[algorithm, dataset, 'Average F1'] = compute_avg_f1(clrs_true, clrs)
 
 			if lbls_true == None:
-				result[algorithm, dataset, 'nmi'] = None
-				result[algorithm, dataset, 'ars'] = None	
+				result[algorithm, dataset, 'NMI'] = None
+				result[algorithm, dataset, 'ARS'] = None	
 			else:
 				from cluster_metrics import compute_nmi, compute_ars
-				result[algorithm, dataset, 'nmi'] = compute_nmi(lbls_true, lbls)
-				result[algorithm, dataset, 'ars'] = compute_ars(lbls_true, lbls)
+				result[algorithm, dataset, 'NMI'] = compute_nmi(lbls_true, lbls)
+				result[algorithm, dataset, 'ARS'] = compute_ars(lbls_true, lbls)
 	
 	return result
 
@@ -150,7 +150,7 @@ def fit_algo_params(algorithm, n_clusters, neighbours_threshold, similarity_thre
 
 	elif algorithm == 'LPA':
 		if n_clusters == None:
-			print "Argument n_clusters is ignored for LPA algorithm!"
+			print "Argument n_clusters is ignored for LPA algorithm."
 		if neighbours_threshold != None:
 			print "Argument neighbours_threshold is ignored for LPA algorithm."
 		if similarity_threshold != None:
