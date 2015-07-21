@@ -1,8 +1,5 @@
 # wrapper for easy downloading data
 
-
-#TODO: weighted graph processing
-
 def download_graph(filename):
 
   f = open(filename, "r")
@@ -68,4 +65,33 @@ def download_clusters(filename):
   f.close()
 
   return clusters
+
+
+def write_result(all_algorithms, all_datasets, result, filename):
+  import pandas as pd
+  all_measures = ['My modularity', 'Modularity', 'RatioCut', 'NormCut', 'NMI', 'ARS', 'Recall', 'Precision', 'Average F1', 'Time']
+
+  writer = pd.ExcelWriter(filename)
+  row = 1
+  for dataset in all_datasets:
+    res_dict = {}
+
+    for measure in all_measures:
+      pred_dict = {}
+
+      for algorithm in all_algorithms:
+        if (algorithm, dataset, measure) in result.keys():
+          pred_dict[algorithm] = result[algorithm, dataset, measure]
+      res_dict[measure] = pred_dict
+
+    final_dict = {}
+    for measure in all_measures:
+      final_dict[measure] = res_dict[measure]
+    
+    df = pd.DataFrame(final_dict)
+    df.to_excel(writer, startrow=row, float_format = '%11.3f')
+    writer.save()
+    row = row + 7
+
+
 

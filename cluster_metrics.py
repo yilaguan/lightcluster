@@ -1,8 +1,5 @@
 #here should go metrics implementation or their wrapper
 
-#def compute_metric(metric = 'Modularity', ):
-#TODO
-
 def compute_nmi(labels_true, labels_pred):
 	
 	from sklearn.metrics import normalized_mutual_info_score
@@ -76,6 +73,18 @@ def compute_recall(clusters_true, clusters_pred):
 	recall = res / len(clusters_true)
 	return recall     
 
+def compute_precision(clusters_true, clusters_pred):
+
+	res = 0.0
+	g = match_straight(clusters_true, clusters_pred)
+	for i in xrange(len(clusters_true)):
+		A = set(clusters_true[i])
+		B = set(clusters_pred[g[i]])
+		res = res + 1.0 * len(A & B) / len(B)
+	
+	precision = res / len(clusters_true)
+	return precision  
+
 
 def compute_avg_f1(clusters_true, clusters_pred):
 		
@@ -129,7 +138,7 @@ def compute_my_modularity(labels_pred, edge_list):
 	return Q
 
 
-def compute_igraph_modularity(labels_pred, edge_list):
+def compute_modularity(labels_pred, edge_list):
 
 	n_vertex = len(labels_pred)
 	import igraph as ig
@@ -137,5 +146,46 @@ def compute_igraph_modularity(labels_pred, edge_list):
 	graph, weights = compute_igraph_form(n_vertex, edge_list);
 
 	return graph.modularity(labels_pred, weights=weights)
+
+
+def compute_ratio_cut(labels_pred, edge_list):
+
+	from transform_functions import compute_clusters_from_labels
+	clusters_pred = compute_clusters_from_labels(labels_pred)
+
+	res = [0.0]*len(clusters_pred)
+	for i in xrange(len(edge_list)):
+		if (labels_pred[edge_list[i][0]] != labels_pred[edge_list[i][1]]):
+			res[labels_pred[edge_list[i][0]]] += edge_list[i][2]
+			res[labels_pred[edge_list[i][1]]] += edge_list[i][2]
+
+	ratiocut = 0.0
+	for i in xrange(len(clusters_pred)):
+		ratiocut += res[i]/len(clusters_pred[i])
+	return ratiocut
+
+
+def compute_normalized_cut(labels_pred, edge_list):
+
+	from transform_functions import compute_clusters_from_labels
+	clusters_pred = compute_clusters_from_labels(labels_pred)
+
+	res = [0.0]*len(clusters_pred)
+	vol = [0.0]*len(clusters_pred)
+	for i in xrange(len(edge_list)):
+		vol[labels_pred[edge_list[i][0]]] += edge_list[i][2]
+		vol[labels_pred[edge_list[i][1]]] += edge_list[i][2]
+		if (labels_pred[edge_list[i][0]] != labels_pred[edge_list[i][1]]):
+			res[labels_pred[edge_list[i][0]]] += edge_list[i][2]
+			res[labels_pred[edge_list[i][1]]] += edge_list[i][2]
+
+	normcut = 0.0
+	for i in xrange(len(clusters_pred)):
+		normcut += res[i]/vol[i]
+	return normcut
+			
+
+
+
 
 

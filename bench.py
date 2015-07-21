@@ -8,12 +8,13 @@ def make_experiment(algorithms=None, datasets=None, **kwargs):
 	if datasets == None:
 		raise TypeError("Datasets are not given\n")
 
-	recognized = ['n_clusters', 'neighbours_threshold', 'similarity_threshold', 'n_steps']
+	recognized = ['n_clusters', 'neighbours_threshold', 'similarity_threshold', 'n_steps', 'clique_size']
 
 	n_clusters=None
 	neighbours_threshold=None
 	similarity_threshold=None
 	n_steps=None
+	clique_size=None
 
 	for key, value in kwargs.items():
 		if key not in recognized:
@@ -28,41 +29,49 @@ def make_experiment(algorithms=None, datasets=None, **kwargs):
 			similarity_threshold = value
 		elif key == recognized[3]:
 			n_steps = value
+		elif key == recognized[4]:
+			clique_size = value
 
 	for algorithm in algorithms:
-		if algorithm not in ['Spectral', 'SCAN', 'GreedyNewman', 'Walktrap', 'LPA']:
+		if algorithm not in ['Spectral', 'SCAN', 'GreedyNewman', 'Walktrap', 'LPA', 'CFinder', 'Clauset-Newman']:
 			print 'Algorithm '+algorithm+' is unavailable!\n'
 
 	for dataset in datasets:
-			if dataset not in ['football.txt', 'polbooks.txt', 'protein_new.txt', 'amazon.txt', 'scientists_new.txt', 'karate.txt']:
+			if dataset not in ['football.txt', 'polbooks.txt', 'protein_new.txt', 'amazon.txt', 'scientists_new.txt', 'karate.txt', 
+													'facebook.txt', 'cliques.txt', 'nested.txt']:
 				print 'Dataset '+dataset+' is unavailable!\n'
 
 	result = {}
 
 	for algorithm in algorithms:
-		if algorithm not in ['Spectral', 'SCAN', 'GreedyNewman', 'Walktrap', 'LPA']:
+		if algorithm not in ['Spectral', 'SCAN', 'GreedyNewman', 'Walktrap', 'LPA', 'CFinder', 'Clauset-Newman']:
 			continue
 
-		fit, n_clusters, similarity_threshold, neighbours_threshold, n_steps = fit_algo_params(algorithm, n_clusters, 
-																																													 similarity_threshold, neighbours_threshold, n_steps)
+		fit, n_clusters, similarity_threshold, neighbours_threshold, n_steps, clique_size = fit_algo_params(algorithm, n_clusters, 
+																										 similarity_threshold, neighbours_threshold, n_steps, clique_size)
 		if not fit:
 			continue
 
 		for dataset in datasets:
-			if dataset not in ['football.txt', 'polbooks.txt', 'protein_new.txt', 'amazon.txt', 'scientists_new.txt', 'karate.txt']:
+			if dataset not in ['football.txt', 'polbooks.txt', 'protein_new.txt', 'amazon.txt', 'scientists_new.txt', 'karate.txt', 
+													'facebook.txt', 'cliques.txt', 'nested.txt']:
 				continue
 
 			from load_data import download_graph
 			n_vertex, edge_list = download_graph('data\\'+dataset)
 
 			from model_builder import clustering
-			lbls, clrs = clustering(algorithm, n_vertex, edge_list, n_clusters, similarity_threshold, neighbours_threshold, n_steps)
-			from transform_functions import compute_normal_labels
-			lbls = compute_normal_labels(lbls)
-
-			from cluster_metrics import compute_my_modularity, compute_igraph_modularity
-			result[algorithm, dataset, 'My modularity'] = compute_my_modularity(lbls, edge_list)
-			result[algorithm, dataset, 'Igraph modularity'] = compute_igraph_modularity(lbls, edge_list)
+			#try:
+			lbls, clrs, exectime = clustering(algorithm, n_vertex, edge_list, n_clusters, similarity_threshold, neighbours_threshold, n_steps, clique_size)
+			#except:
+			#	continue
+			result[algorithm, dataset, 'Time'] = exectime
+			if lbls != None:
+				from cluster_metrics import compute_my_modularity, compute_modularity, compute_ratio_cut, compute_normalized_cut
+				result[algorithm, dataset, 'My modularity'] = compute_my_modularity(lbls, edge_list)
+				result[algorithm, dataset, 'Modularity'] = compute_modularity(lbls, edge_list)
+				result[algorithm, dataset, 'RatioCut'] = compute_ratio_cut(lbls, edge_list)
+				result[algorithm, dataset, 'NormCut'] = compute_normalized_cut(lbls, edge_list)
 
 			lbls_true = None
 			clrs_true = None
@@ -76,19 +85,21 @@ def make_experiment(algorithms=None, datasets=None, **kwargs):
 			elif os.path.isfile('data\\'+dataset[:-4]+'_clusters.txt'):
 				from load_data import download_clusters
 				clrs_true = download_clusters('data\\'+dataset[:-4]+'_clusters.txt')
-
+			
 			if clrs_true == None:
+				result[algorithm, dataset, 'Precision'] = None
 				result[algorithm, dataset, 'Recall'] = None
 				result[algorithm, dataset, 'Average F1'] = None
 			else:
-				from cluster_metrics import compute_recall, compute_avg_f1
+				from cluster_metrics import compute_recall, compute_precision, compute_avg_f1
+				result[algorithm, dataset, 'Precision'] = compute_precision(clrs_true, clrs)
 				result[algorithm, dataset, 'Recall'] = compute_recall(clrs_true, clrs)
 				result[algorithm, dataset, 'Average F1'] = compute_avg_f1(clrs_true, clrs)
 
 			if lbls_true == None:
 				result[algorithm, dataset, 'NMI'] = None
 				result[algorithm, dataset, 'ARS'] = None	
-			else:
+			elif lbls != None:
 				from cluster_metrics import compute_nmi, compute_ars
 				result[algorithm, dataset, 'NMI'] = compute_nmi(lbls_true, lbls)
 				result[algorithm, dataset, 'ARS'] = compute_ars(lbls_true, lbls)
@@ -96,7 +107,7 @@ def make_experiment(algorithms=None, datasets=None, **kwargs):
 	return result
 
 
-def fit_algo_params(algorithm, n_clusters, neighbours_threshold, similarity_threshold, n_steps):
+def fit_algo_params(algorithm, n_clusters, neighbours_threshold, similarity_threshold, n_steps, clique_size):
 
 	fit = True
 
@@ -110,6 +121,8 @@ def fit_algo_params(algorithm, n_clusters, neighbours_threshold, similarity_thre
 			print "Argument similarity_threshold is ignored for Spectral algorithm."
 		if n_steps != None:
 			print "Argument n_steps is ignored for Spectral algorithm."
+		if clique_size != None:
+			print "Argument clique_size is ignored for Spectral algorithm."		
 		print "\n"
 
 	elif algorithm == 'SCAN':
@@ -123,6 +136,8 @@ def fit_algo_params(algorithm, n_clusters, neighbours_threshold, similarity_thre
 			similarity_threshold = 2.0
 		if n_steps != None:
 			print "Argument n_steps is ignored for SCAN algorithm."
+		if clique_size != None:
+					print "Argument clique_size is ignored for SCAN algorithm.\n"
 		print "\n"
 
 	elif algorithm == 'GreedyNewman':
@@ -134,6 +149,8 @@ def fit_algo_params(algorithm, n_clusters, neighbours_threshold, similarity_thre
 			print "Argument similarity_threshold is ignored for GreedyNewman algorithm."
 		if n_steps != None:
 			print "Argument n_steps is ignored for GreedyNewman algorithm."
+		if clique_size != None:
+					print "Argument clique_size is ignored for GreedyNewman algorithm.\n"
 		print "\n"
 
 	elif algorithm == 'Walktrap':
@@ -146,6 +163,8 @@ def fit_algo_params(algorithm, n_clusters, neighbours_threshold, similarity_thre
 		if n_steps == None:
 			print "Argument n_steps was not given for Walktrap algorithm. Launching with default n_steps=4."
 			n_steps = 4
+		if clique_size != None:
+					print "Argument clique_size is ignored for Walktrap algorithm.\n"
 		print "\n"
 
 	elif algorithm == 'LPA':
@@ -157,7 +176,36 @@ def fit_algo_params(algorithm, n_clusters, neighbours_threshold, similarity_thre
 			print "Argument similarity_threshold is ignored for LPA algorithm."
 		if n_steps != None:
 			print "Argument n_steps is ignored for LPA algorithm."
+		if clique_size != None:
+					print "Argument clique_size is ignored for LPA algorithm.\n"
 		print "\n"
 
-	return [fit, n_clusters, similarity_threshold, neighbours_threshold, n_steps]
+	elif algorithm == 'CFinder':
+			if n_clusters != None:
+					print "Argument n_clusters is ignored for CFinder algorithm!"
+			if neighbours_threshold != None:
+					print "Argument neighbours_threshold is ignored for CFinder algorithm."
+			if similarity_threshold != None:
+					print "Argument similarity_threshold is ignored for CFinder algorithm."
+			if n_steps != None:
+					print "Argument n_steps is ignored for CFinder algorithm."
+			if clique_size == None:
+					print "Argument clique_size was not given for CFinder algorithm. Launching with default clique_size=3."
+					clique_size = 3
+			print "\n"
+
+	elif algorithm == 'Clauset-Newman':
+		if n_clusters == None:
+			print "Argument n_clusters will be choosen automatically for Clauset-Newman algorithm."
+		if neighbours_threshold != None:
+			print "Argument neighbours_threshold is ignored for Clauset-Newman algorithm."
+		if similarity_threshold != None:
+			print "Argument similarity_threshold is ignored for Clauset-Newman algorithm."
+		if n_steps == None:
+			print "Argument n_steps is ignored for Clauset-Newman algorithm."
+		if clique_size != None:
+					print "Argument clique_size is ignored for Clauset-Newman algorithm.\n"
+		print "\n"
+
+	return [fit, n_clusters, similarity_threshold, neighbours_threshold, n_steps, clique_size]
 
