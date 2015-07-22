@@ -1,28 +1,34 @@
 #algorithm wrapper to have the same interface for all the libraries
 
 import time
+import transform_functions as tf
+import igraph as ig
+import networkx as nx
+
+from scipy.sparse import csr_matrix
+from lib.scan_by_enjoylife import scan_by_enjoylife_algo
+from itertools import combinations
 
 def clustering(algorithm, n_vertex, edge_list, n_clusters, neighbours_threshold, similarity_threshold, n_steps, clique_size):
 
   if algorithm == 'Spectral':
-    return compute_spectral_clustering(n_vertex, edge_list, n_clusters)
+    labels, clusters, exectime = compute_spectral_clustering(n_vertex, edge_list, n_clusters)
   elif algorithm == 'SCAN':
-    return compute_scan(n_vertex, edge_list, neighbours_threshold, similarity_threshold)
+    labels, clusters, exectime = compute_scan(n_vertex, edge_list, neighbours_threshold, similarity_threshold)
   elif algorithm == 'GreedyNewman':
-    return compute_greedy_newman(n_vertex, edge_list)
+    labels, clusters, exectime = compute_greedy_newman(n_vertex, edge_list)
   elif algorithm == 'Walktrap':
-    return compute_walktrap(n_vertex, edge_list, n_clusters, n_steps)
+    labels, clusters, exectime = compute_walktrap(n_vertex, edge_list, n_clusters, n_steps)
   elif algorithm == 'LPA':
-    return compute_lpa(n_vertex, edge_list)
+    labels, clusters, exectime = compute_lpa(n_vertex, edge_list)
   elif algorithm == 'CFinder':
-    return compute_cfinder(n_vertex, edge_list, clique_size)
+    labels, clusters, exectime = compute_cfinder(n_vertex, edge_list, clique_size)
   elif algorithm == 'Clauset-Newman':
-    return compute_clauset_newman(n_vertex, edge_list, n_clusters)
+    labels, clusters, exectime = compute_clauset_newman(n_vertex, edge_list, n_clusters)
 
+  return labels, clusters, exectime
 
 def independent_clustering(algorithm, n_vertex=None, edge_list=None, **kwargs): 
-
-
   if n_vertex == None or edge_list == None:
     raise TypeError("Arguments n_vertex and edge_list must be given!\n")
 
@@ -49,7 +55,6 @@ def independent_clustering(algorithm, n_vertex=None, edge_list=None, **kwargs):
       n_steps = value
     elif key == recognized[4]:
       clique_size = value
-
 
   if algorithm == 'Spectral':
     if n_clusters == None:
@@ -79,7 +84,7 @@ def independent_clustering(algorithm, n_vertex=None, edge_list=None, **kwargs):
     if clique_size != None:
       print "Argument clique_size is ignored for SCAN algorithm.\n"
 
-    return compute_scan(n_vertex, edge_list, neighbours_threshold, similarity_threshold)
+    labels, clusters, exectime = compute_scan(n_vertex, edge_list, neighbours_threshold, similarity_threshold)
 
   elif algorithm == 'GreedyNewman':
     if n_clusters != None:
@@ -93,7 +98,7 @@ def independent_clustering(algorithm, n_vertex=None, edge_list=None, **kwargs):
     if clique_size != None:
       print "Argument clique_size is ignored for GreedyNewman algorithm.\n"
 
-    return compute_greedy_newman(n_vertex, edge_list)
+    labels, clusters, exectime = compute_greedy_newman(n_vertex, edge_list)
 
   elif algorithm == 'Walktrap':
     if n_clusters == None:
@@ -108,7 +113,7 @@ def independent_clustering(algorithm, n_vertex=None, edge_list=None, **kwargs):
     if clique_size != None:
       print "Argument clique_size is ignored for Walktrap algorithm.\n"
 
-    return compute_walktrap(n_vertex, edge_list, n_clusters, n_steps)
+    labels, clusters, exectime = compute_walktrap(n_vertex, edge_list, n_clusters, n_steps)
 
   elif algorithm == 'LPA':
     if n_clusters != None:
@@ -122,7 +127,7 @@ def independent_clustering(algorithm, n_vertex=None, edge_list=None, **kwargs):
     if clique_size != None:
       print "Argument clique_size is ignored for LPA algorithm.\n"
 
-    return compute_lpa(n_vertex, edge_list)
+    labels, clusters, exectime = compute_lpa(n_vertex, edge_list)
 
   elif algorithm == 'CFinder':
     if n_clusters != None:
@@ -137,7 +142,7 @@ def independent_clustering(algorithm, n_vertex=None, edge_list=None, **kwargs):
       print "Argument clique_size was not given for CFinder algorithm. Launchibg with default clique_size=3.\n"
       clique_size = 3
 
-    return compute_cfinder(n_vertex, edge_list, clique_size)
+    labels, clusters, exectime = compute_cfinder(n_vertex, edge_list, clique_size)
 
   elif algorithm == 'Clauset-Newman':
     if n_clusters == None:
@@ -151,111 +156,82 @@ def independent_clustering(algorithm, n_vertex=None, edge_list=None, **kwargs):
     if clique_size != None:
       print "Argument clique_size is ignored for Clauset-Newman algorithm.\n"
 
-    return compute_clauset_newman(n_vertex, edge_list, n_clusters)
+    labels, clusters, exectime = compute_clauset_newman(n_vertex, edge_list, n_clusters)
 
   else:
     raise TypeError(("Algorithm '%s' is not recognized!\nAvailable algorithms are: Spectral, SCAN, GreedyNewman, Walktrap, LPA, CFinder, Clauset-Newman\n") % algorithm)
 
+  return labels, clusters, exectime
 
 def compute_spectral_clustering(n_vertex, edge_list, n_clusters):
-
   from sklearn.cluster import SpectralClustering
   clst = SpectralClustering(n_clusters, affinity = 'precomputed')
 
-  from transform_functions import compute_adjacency_matrix
-  adjacency_matrix = compute_adjacency_matrix(n_vertex, edge_list)
+  adjacency_matrix = tf.compute_adjacency_matrix(n_vertex, edge_list)
   
   t = time.time()
   labels = clst.fit_predict(adjacency_matrix, n_clusters)
   exectime = time.time() - t
 
-  from transform_functions import compute_normal_labels
-  labels = compute_normal_labels(labels)
-  from transform_functions import compute_clusters_from_labels
-  clusters = compute_clusters_from_labels(labels)
+  labels = tf.compute_normal_labels(labels)
 
-  return [labels, clusters, exectime]
+  clusters = tf.compute_clusters_from_labels(labels)
 
+  return labels, clusters, exectime
 
 def compute_scan(n_vertex, edge_list, neighbours_threshold, similarity_threshold):
+  rows, columns, weights = tf.compute_csr_form(edge_list)
 
-  from transform_functions import compute_csr_form
-  rows, columns, weights = compute_csr_form(edge_list)
-
-  from scipy.sparse import csr_matrix
   G = csr_matrix((weights,(rows,columns)),shape=(n_vertex,n_vertex))
-
-  from lib.scan_by_enjoylife import scan_by_enjoylife_algo
   
   t = time.time()
   labels = scan_by_enjoylife_algo(G, neighbours_threshold, similarity_threshold)
   exectime = time.time() - t
 
-  from transform_functions import compute_normal_labels
-  labels = compute_normal_labels(labels)
-  from transform_functions import compute_clusters_from_labels
-  clusters = compute_clusters_from_labels(labels)
+  labels = tf.compute_normal_labels(labels)
 
-  return [labels, clusters, exectime]
+  clusters = tf.compute_clusters_from_labels(labels)
 
+  return labels, clusters, exectime
 
 def compute_greedy_newman(n_vertex, edge_list):
-
-  import networkx as nx
-  from transform_functions import compute_networkx_form
-  graph = compute_networkx_form(n_vertex, edge_list)
-
   from agglomcluster import NewmanGreedy
+  graph = tf.compute_networkx_form(n_vertex, edge_list)
   
   t = time.time()
   clst = NewmanGreedy(graph)
   clusters = clst.get_clusters()
   exectime = time.time() - t
 
-  from transform_functions import compute_labels_from_clusters
-  labels = compute_labels_from_clusters(n_vertex, clusters)
+  labels = tf.compute_labels_from_clusters(n_vertex, clusters)
 
-  return [labels, clusters, exectime]
+  return labels, clusters, exectime
 
 def compute_walktrap(n_vertex, edge_list, n_clusters, n_steps):
-
-  import igraph as ig
-  from transform_functions import compute_igraph_form
-  graph, weights = compute_igraph_form(n_vertex, edge_list)
+  graph, weights = tf.compute_igraph_form(n_vertex, edge_list)
   
   t = time.time()
   dendrogram = graph.community_walktrap(weights, n_steps)
   clusters = dendrogram.as_clustering(n=n_clusters)
   exectime = time.time() - t
 
-  from transform_functions import compute_labels_from_clusters
-  labels = compute_labels_from_clusters(n_vertex, clusters)
+  labels = tf.compute_labels_from_clusters(n_vertex, clusters)
 
-  return [labels, clusters, exectime]
-
+  return labels, clusters, exectime
 
 def compute_lpa(n_vertex, edge_list):
-
-  import igraph as ig
-  from transform_functions import compute_igraph_form
-  graph, weights = compute_igraph_form(n_vertex, edge_list)
+  graph, weights = tf.compute_igraph_form(n_vertex, edge_list)
 
   t = time.time()
   clusters = graph.community_label_propagation(weights=weights, initial=None, fixed=None)
   exectime = time.time() - t
 
-  from transform_functions import compute_labels_from_clusters
-  labels = compute_labels_from_clusters(n_vertex, clusters)
+  labels = tf.compute_labels_from_clusters(n_vertex, clusters)
 
-  return [labels, clusters, exectime]
-
+  return labels, clusters, exectime
 
 def compute_cfinder(n_vertex, edge_list, clique_size):
-
-  from itertools import combinations
-  import igraph
-  from transform_functions import compute_igraph_form
-  g, weights = compute_igraph_form(n_vertex, edge_list);
+  g, weights = tf.compute_igraph_form(n_vertex, edge_list);
 
   t = time.time()
   clst = map(set, g.maximal_cliques(min=clique_size))
@@ -263,7 +239,7 @@ def compute_cfinder(n_vertex, edge_list, clique_size):
   for i, j in combinations(range(len(clst)), 2):
     if len(clst[i].intersection(clst[j])) >= clique_size-1:
       edgelist.append((i, j))
-  cg = igraph.Graph()
+  cg = ig.Graph()
   cg.add_vertices(len(clst))
   cg.add_edges(edgelist)
 
@@ -277,22 +253,18 @@ def compute_cfinder(n_vertex, edge_list, clique_size):
     clusters.append(cluster)
   exectime = time.time() - t
 
-  return [None, clusters, exectime]
+  labels = None
 
+  return labels, clusters, exectime
 
 def compute_clauset_newman(n_vertex, edge_list, n_clusters):
-
-  import igraph as ig
-  from transform_functions import compute_igraph_form
-  graph, weights = compute_igraph_form(n_vertex, edge_list)
+  graph, weights = tf.compute_igraph_form(n_vertex, edge_list)
   
   t = time.time()
   dendrogram = graph.community_fastgreedy(weights)
   clusters = dendrogram.as_clustering(n=n_clusters)
   exectime = time.time() - t
 
-  from transform_functions import compute_labels_from_clusters
-  labels = compute_labels_from_clusters(n_vertex, clusters)
+  labels = tf.compute_labels_from_clusters(n_vertex, clusters)
 
-  return [labels, clusters, exectime]
-
+  return labels, clusters, exectime
