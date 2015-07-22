@@ -38,7 +38,7 @@ def make_experiment(algorithms=None, datasets=None, **kwargs):
 
 	for dataset in datasets:
 			if dataset not in ['football.txt', 'polbooks.txt', 'protein_new.txt', 'amazon.txt', 'scientists_new.txt', 'karate.txt', 
-													'facebook.txt', 'cliques.txt', 'nested.txt']:
+													'facebook.txt', 'cliques.txt', 'nested.txt', 'stars.txt', 'cycles.txt']:
 				print 'Dataset '+dataset+' is unavailable!\n'
 
 	result = {}
@@ -54,7 +54,7 @@ def make_experiment(algorithms=None, datasets=None, **kwargs):
 
 		for dataset in datasets:
 			if dataset not in ['football.txt', 'polbooks.txt', 'protein_new.txt', 'amazon.txt', 'scientists_new.txt', 'karate.txt', 
-													'facebook.txt', 'cliques.txt', 'nested.txt']:
+													'facebook.txt', 'cliques.txt', 'nested.txt', 'stars.txt', 'cycles.txt']:
 				continue
 
 			from load_data import download_graph
@@ -65,7 +65,15 @@ def make_experiment(algorithms=None, datasets=None, **kwargs):
 			lbls, clrs, exectime = clustering(algorithm, n_vertex, edge_list, n_clusters, similarity_threshold, neighbours_threshold, n_steps, clique_size)
 			#except:
 			#	continue
+
+			from load_data import write_labels, write_clusters
+			if lbls != None:
+				write_labels(algorithm, dataset, lbls)
+			if clrs != None:
+				write_clusters(algorithm, dataset, clrs)
+
 			result[algorithm, dataset, 'Time'] = exectime
+
 			if lbls != None:
 				from cluster_metrics import compute_my_modularity, compute_modularity, compute_ratio_cut, compute_normalized_cut
 				result[algorithm, dataset, 'My modularity'] = compute_my_modularity(lbls, edge_list)

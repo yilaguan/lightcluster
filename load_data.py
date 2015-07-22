@@ -93,5 +93,22 @@ def write_result(all_algorithms, all_datasets, result, filename):
     writer.save()
     row = row + 7
 
+def write_labels(algorithm, dataset, labels):
+
+  f = open('data\\answers\\'+'labels_'+algorithm+'_'+dataset, "w")
+  for i in xrange(len(labels)):
+    f.write(str(labels[i]+1)+'\n')
+
+
+def write_clusters(algorithm, dataset, clusters):
+
+  f = open('data\\answers\\'+'clusters_'+algorithm+'_'+dataset, "w")
+  for i in xrange(len(clusters)):
+    string = ''
+    for j in clusters[i]:
+      string += ' '+str(j+1)
+    f.write(string[1:]+'\n')
+
+
 
 

@@ -118,7 +118,7 @@ def compute_my_modularity(labels_pred, edge_list):
 	n_edges = len(edge_list)
 	m = 0.0   #finally m = sum w_ij
 	E = 0.0   #finally E/2m = sum e_ii
-	A = [0.0] * len(set(labels_pred))
+	A = [0.0] * (len(set(labels_pred))+1)
 	res = 0.0
 
 	for i in xrange(n_edges):
@@ -153,7 +153,7 @@ def compute_ratio_cut(labels_pred, edge_list):
 	from transform_functions import compute_clusters_from_labels
 	clusters_pred = compute_clusters_from_labels(labels_pred)
 
-	res = [0.0]*len(clusters_pred)
+	res = [0.0]*(len(clusters_pred) + 1)
 	for i in xrange(len(edge_list)):
 		if (labels_pred[edge_list[i][0]] != labels_pred[edge_list[i][1]]):
 			res[labels_pred[edge_list[i][0]]] += edge_list[i][2]

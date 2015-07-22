@@ -259,6 +259,13 @@ def compute_cfinder(n_vertex, edge_list, clique_size):
 
   t = time.time()
   clst = map(set, g.maximal_cliques(min=clique_size))
+  if len(clst) == 0:
+    clusters = []
+    for i in xrange(n_vertex):
+      clusters.append(set([i]))
+    exectime = time.time() - t
+    return [xrange(n_vertex), clusters, exectime]
+
   edgelist = []
   for i, j in combinations(range(len(clst)), 2):
     if len(clst[i].intersection(clst[j])) >= clique_size-1:
