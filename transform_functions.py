@@ -1,7 +1,5 @@
 # here should go functions which transform one graph or answer representation into another
 
-
-#computing adjacency matrix from amount of vertixes and list of edges
 def compute_adjacency_matrix(n_vertex, edgelist):
 
   import numpy as np
@@ -17,7 +15,6 @@ def compute_adjacency_matrix(n_vertex, edgelist):
   return adjacency_matrix
 
 
-#computing compressed sparse row form from list of edges
 def compute_csr_form(edge_list):
   
   rows = [];
@@ -44,6 +41,7 @@ def compute_networkx_form(n_vertex, edge_list):
 
   return graph
 
+
 def compute_igraph_form(n_vertex, edge_list):
 
   import igraph as ig
@@ -67,7 +65,6 @@ def compute_igraph_form(n_vertex, edge_list):
   return [graph, weights]
 
 
-#transforming original list of labels into list of labels with 0,1,2,...
 def compute_normal_labels(labels):
   #new list
   normal_labels = []
@@ -88,7 +85,7 @@ def compute_normal_labels(labels):
   
   return normal_labels
 
-#it is not possible in some cases (overlapping structure)
+
 def compute_labels_from_clusters(n_vertex, clusters):
   
   labels = [-1]*n_vertex
@@ -114,6 +111,7 @@ def compute_clusters_from_labels(labels):
 def compute_amount_of_communities_from_labels(labels):
 
   return len(set(labels))
+
 
 def compute_amount_of_communities_from_clusters(clusters):
 

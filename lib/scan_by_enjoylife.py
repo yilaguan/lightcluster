@@ -34,7 +34,7 @@ def scan_by_enjoylife_algo(G, eps =0.7, mu=2):
     c = 0
     v = G.shape[0]
     # All vertices are labeled as unclassified(-1)
-    vertex_labels = -np.ones(v)#.astype(int)
+    vertex_labels = -np.ones(v).astype(int)
     # start with a neg core(every new core we incr by 1)
     cluster_id = -1
     for vertex in xrange(v):
