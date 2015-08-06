@@ -25,7 +25,7 @@ def neighborhood(G, vertex_v, eps):
             N.append(index)
     return N, vcols
  
-def scan_by_enjoylife_algo(G, eps =0.7, mu=2):
+def scan_by_enjoylife_algo(G, eps=0.7, mu=2):
     """
     Vertex Structure = sum of row + itself(1)
     Structural Similarity is the geometric mean of the 2Vertex size of structure
@@ -64,18 +64,42 @@ def scan_by_enjoylife_algo(G, eps =0.7, mu=2):
                              N.appendleft(r)
         else:
             vertex_labels[vertex] = 0
-    
-    #classify non-members
-    for index in np.where(vertex_labels ==0)[0]:
-        ncols= G[index,:].tocoo().col
-        if len(ncols) >=2:
-            ## mark as a hub
-            vertex_labels[index] = -2 
-            continue
-            
-        else:
-            ## mark as outlier
-            vertex_labels[index] = -3
-            continue
+    if cluster_id  <= 0:
+        clusters = []
+        labels = xrange(v)
+        for i in xrange(v):
+            clusters.append(set([i]))
+        return [labels, clusters]
 
-    return vertex_labels
+    labels = [-1]*v
+    new_clusters_id = [-1]*(cluster_id+1)
+    new_clusters_id[0] = 0
+    index = 1
+    for vertex in xrange(v):
+        if new_clusters_id[vertex_labels[vertex]] == -1:
+            new_clusters_id[vertex_labels[vertex]] = index
+            index = index+1
+        labels[vertex] = new_clusters_id[vertex_labels[vertex]]
+
+    clusters = [0]*(index-1)
+    for i in xrange(1, index):
+        clusters[i-1] = set(vertex for vertex in xrange(v) if labels[vertex] == i)
+
+    #classify non-members
+    for index in xrange(v):
+        if labels[index] == 0:
+            ncols= G[index,:].tocoo().col
+            if len(ncols) >=2:
+                ## mark as a hub
+                labels[index] = -2 
+                for j in xrange(len(ncols)):
+                    if labels[ncols[j]] > 0:
+                        clusters[labels[ncols[j]]-1].add(index)
+                continue
+                
+            else:
+                ## mark as outlier
+                labels[index] = -3
+                continue
+
+    return [labels, clusters]

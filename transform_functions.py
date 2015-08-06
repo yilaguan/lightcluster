@@ -14,7 +14,6 @@ def compute_adjacency_matrix(n_vertex, edgelist):
        
   return adjacency_matrix
 
-
 def compute_csr_form(edge_list):
   
   rows = [];
@@ -31,7 +30,6 @@ def compute_csr_form(edge_list):
   
   return [rows, columns, weights]
 
-
 def compute_networkx_form(n_vertex, edge_list):
 
   import networkx as nx
@@ -40,7 +38,6 @@ def compute_networkx_form(n_vertex, edge_list):
   graph.add_weighted_edges_from(edge_list)
 
   return graph
-
 
 def compute_igraph_form(n_vertex, edge_list):
 
@@ -64,7 +61,6 @@ def compute_igraph_form(n_vertex, edge_list):
   graph.add_edges(edge_list_without_weights)
   return [graph, weights]
 
-
 def compute_normal_labels(labels):
   #new list
   normal_labels = []
@@ -85,7 +81,6 @@ def compute_normal_labels(labels):
   
   return normal_labels
 
-
 def compute_labels_from_clusters(n_vertex, clusters):
   
   labels = [-1]*n_vertex
@@ -95,7 +90,6 @@ def compute_labels_from_clusters(n_vertex, clusters):
       labels[j] = i
 
   return labels
-
 
 def compute_clusters_from_labels(labels):
 
@@ -107,16 +101,13 @@ def compute_clusters_from_labels(labels):
 
   return clusters
 
-
 def compute_amount_of_communities_from_labels(labels):
 
   return len(set(labels))
 
-
 def compute_amount_of_communities_from_clusters(clusters):
 
   return len(clusters)
-
 
 #extracts biggest fully connected component of graph written in filename. creates new file with this component.
 #if data with ground-truth, creates new file with answer for this component
