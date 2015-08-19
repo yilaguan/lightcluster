@@ -1,23 +1,21 @@
-2. Common names of variables:
+In addition to README.md.
+
+6. Common names of variables:
 
 - 'n_vertex' --- amount of vertex
 - 'n_edges' --- amount of edges
 - 'n_clusters' --- amount of clusters
 - 'edge_list' --- list of edges, always weighted (if graph is unweighted, then weight = 1), e.g. [[0, 1, 0.5], [0, 2, 1], [1, 3, 100], ...]
-- 'lbls' --- list of labels with length of 'n_vertex', i-th vertex belongs to cluster lbl[i], e.g. [0, 0, 0, 1, 1, 1, 0, 2, 0, 2, ...]; 'lbls_true' for ground-truth 
- (only for non-ovrlapping communities)
-- 'clrs' --- list of clusters, i-th element of list contains vertices that belongs to i-th cluster, e.g. [(0,1,2,3), (0,2,4), (4), ...]; 'clrs_true' for ground-truth
- (for overlapping communities as well as for non_overlapping)
+- 'lbls' --- list of labels with length of 'n_vertex', i-th vertex belongs to cluster lbl[i], e.g. [0, 0, 0, 1, 1, 1, 0, 2, 0, 2, ...]; 'lbls_true' for 
+             ground-truth (only for non-ovrlapping communities)
+- 'clrs' --- list of clusters, i-th element of list contains vertices that belongs to i-th cluster, e.g. [(0,1,2,3), (0,2,4), (4), ...]; 'clrs_true' for
+             ground-truth (for overlapping communities as well as for non_overlapping)
 
- 3. Available algorithms:
+- 'algorithms' --- list of strings, every string means some algorithm
+- 'datasets' --- list of strings, every string means some dataset
+- 'result' --- dictionary with keys ['algorithm', 'dataset', 'metric']
 
- - 'Spectral' from sklearn, described in 'articles\spectral_clustering'.    Parameters: 'n_clusters'.
- - 'SCAN' by enjoylife, described in 'articles\scan'.     Parameters: 'neighbours_threshold', 'similarity_threshold'.
- - 'GreedyNewman' from networkx, described in 'articles\newman_greedy'.     Parameters: no.
- - 'Walktrap' from igraph, described in 'articles\walktrap'.     Parameters: 'n_steps' --- length of random walks.
- - 'LPA' from igraph, described in 'articles\lpa'.     Parameters: no.
-
-4. Functions:
+7. Functions:
 ---------------------------------------------------------------------------------------------------
 	*load_data.py
 
@@ -59,12 +57,37 @@
 	       ..."
 	      i-th row corresponds to i-th cluster and contains vertices of this cluster
 	    Return:  'clusters'
+    
+    - write_labels
+      Parameters: 'algorithm', 'dataset', 'labels'
+        creates file with labels
+    
+    - write_clusters
+      Parameters: 'algorithm', 'dataset', 'clusters'
+        creates file with clusters
+    
+    - write_result
+      Parameters: 'algorithms', 'datasets', 'result', 'filename'
+        print the table of result in file with name 'filename'
 ---------------------------------------------------------------------------------------------------
     *model_builder.py
 
+      - clustering
+        Necessary parameters:
+          algorithm: 'Spectral', 'SCAN', 'GreedyNewman', 'Walktrap', 'LPA', 'CFinder', 'Clauset-Newman', 'Bigclam' 
+          'n_vertex'
+          'edge_list' 
+          'n_clusters' 
+          'neighbours_threshold' 
+          'similarity_threshold' 
+          'n_steps'
+          'clique_size'
+        Returns:
+          'labels', 'clusters' and 'execution time'
+
       - independent_clustering
         Necessary parameters: 
-          algorithm: 'Spectral', 'SCAN', 'GreedyNewman', 'Walktrap', 'LPA'
+          algorithm: 'Spectral', 'SCAN', 'GreedyNewman', 'Walktrap', 'LPA', 'CFinder', 'Clauset-Newman', 'Bigclam'
           'n_vertex'
           'edge_list'
         Additional parameters:
@@ -72,8 +95,9 @@
           'neighbours_threshold'
           'similarity_threshold'
           'n_steps'
+          'clique_size'
         Returns:
-          pair of 'labels' and 'clusters'
+          'labels', 'clusters' and 'execution time'
 
       - compute_spectral_clustering
         Necessary parameters: 
@@ -81,7 +105,7 @@
           'edge_list'
           'n_clusters'
         Returns:
-          pair of 'labels' and 'clusters'
+          'labels', 'clusters' and 'execution time'
        
       - compute_scan
         Necessary parameters: 
@@ -90,14 +114,14 @@
           'neighbours_threshold'
           'similarity_threshold'
         Returns:
-          pair of 'labels' and 'clusters'
+          'labels', 'clusters' and 'execution time'
 
       - compute_greedy_newman
         Necessary parameters: 
           'n_vertex'
           'edge_list'
         Returns:
-          pair of 'labels' and 'clusters'
+          'labels', 'clusters' and 'execution time'
 
       - compute_walktrap
         Necessary parameters: 
@@ -106,14 +130,85 @@
         Additional parameters (if not given - choosen automatically):
           'n_clusters'
         Returns:
-          pair of 'labels' and 'clusters'
+          'labels', 'clusters' and 'execution time'
 
       - compute_lpa
         Necessary parameters: 
           'n_vertex'
           'edge_list'
         Returns:
-          pair of 'labels' and 'clusters'
+          'labels', 'clusters' and 'execution time'
+
+      - compute_cfinder
+        Necessary parameters: 
+          'n_vertex'
+          'edge_list'
+          'clique_size'
+        Returns:
+          'labels', 'clusters' and 'execution time'
+
+      - compute_clauset_newman
+        Necessary parameters: 
+          'n_vertex'
+          'edge_list'
+          'n_clusters'
+        Returns:
+          'labels', 'clusters' and 'execution time'
+
+      - compute_bigclam
+        Necessary parameters: 
+          'n_vertex'
+          'edge_list'
+          'n_clusters'
+        Returns:
+          'labels', 'clusters' and 'execution time'
+
+---------------------------------------------------------------------------------------------------
+    *bench.py
+
+      - make_experiment
+        Necessary parameters: 
+          'algorithms'
+          'datasets'
+        Additional paraameters:
+          'n_clusters'
+          'neighbours_threshold'
+          'similarity_threshold'
+          'n_steps'
+          'clique_size'
+        Returns:
+          'result'
+
+      - make_optimal_experiment
+        Necessary parameters: 
+          'algorithms'
+          'datasets'
+        (Additional parameters will be chosen automatically)
+        Returns:
+          'result'
+
+
+---------------------------------------------------------------------------------------------------
+    *cluter_metrics.py
+
+      - compute_nmi(labels_true, labels_pred)
+      - compute_ars(labels_true, labels_pred)
+      - сompute_recall(clusters_true, clusters_pred)
+      - compute_precision(clusters_true, clusters_pred)
+      - compute_avg_f1(clusters_true, clusters_pred)
+      - compute_modularity(labels_pred, edge_list)
+      - compute_overlapping_modularity(clusters_pred, n_vertex, edge_list)
+      - compute_ratio_cut(labels_pred, clusters_pred, edge_list)
+      - compute_normalized_cut(labels_pred, clusters_pred, edge_list)
+
+---------------------------------------------------------------------------------------------------
+    *get_parameters.py
+
+      - get_optimal_parameters
+        Parameters: 'dataset', recompute=False (always!)
+        Returns: 'parameters' --- dict with keys 'n_clusters', 'neighbours_threshold', 'similarity_threshold', 'n_steps', 'clique_size'.
+        Description: Optimal value of corresponding parameter for given dataset.
+
 ---------------------------------------------------------------------------------------------------
     *transform_functions.py
 
@@ -164,4 +259,3 @@
       	             Besides, if file with answer exists, extracts corresponding labels and write it in 'filename_new_labels' or 'filename_new_clusters'
 
 ---------------------------------------------------------------------------------------------------
-	*cluter_metrics.py
